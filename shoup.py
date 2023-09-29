@@ -96,13 +96,13 @@ def key_gen(param, primes):
 def export_key(sk, pk):
     # Export *unshared* private key and public key to PEM file
     from Crypto.PublicKey.RSA import construct  # unmaintained
-    pubkey = construct((long(pk['n']), long(pk['e'])))
-    privkey = construct((long(pk['n']), long(pk['e']), long(sk['d']),
-                         long(sk['p']), long(sk['q'])))
-    print "RSA public key:"
-    print pubkey.exportKey()
-    print "RSA unshared private key: "
-    print privkey.exportKey(format="PEM", pkcs=8)
+    pubkey = construct((int(pk['n']), int(pk['e'])))
+    privkey = construct((int(pk['n']), int(pk['e']), int(sk['d']),
+                         int(sk['p']), int(sk['q'])))
+    print("RSA public key:")
+    print(pubkey.exportKey())
+    print("RSA unshared private key: ")
+    print(privkey.exportKey(format="PEM", pkcs=8))
 
     # inspect with
     #   openssl rsa -inform PEM -in sk.pem -text -noout
@@ -182,7 +182,7 @@ def reconstruct_signature_shares(param, pk, sigshares, message):
     assert(gcd_e_eprime == 1)
 
     w = 1
-    quorum = range(1, param['number_parties_needed']+1)
+    quorum = list(range(1, param['number_parties_needed']+1))
     for i in quorum:
         exponent = 2 * lagrange(quorum, 0, i, delta)
         part = pow_mod(sigshares[i-1], exponent, n)
@@ -213,7 +213,7 @@ def construct_proofs(param, pk, sk_shared, message, sigshares):
     L = param['number_parties_total']
     xt = lift_message(message, param['delta'], n)
     proofs = [0] * L
-    quorum = range(L)
+    quorum = list(range(L))
     for i in quorum:
         r = random(n)
         c = hash_transcript(script_version=__version__,
@@ -236,7 +236,7 @@ def verify_proofs(param, pk, sk_shared, proofs, message, sigshares):
     n = pk['n']
     v = sk_shared['v']
     xt = lift_message(message, param['delta'], n)
-    quorum = range(param['number_parties_total'])
+    quorum = list(range(param['number_parties_total']))
     for i in quorum:
         their_z, their_c = proofs[i]
 
@@ -375,4 +375,4 @@ while True:
     test_shamir()
     test_roundtrip()
     test_cheat()
-    print "OK"
+    print("OK")
