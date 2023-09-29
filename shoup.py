@@ -9,6 +9,7 @@
 # Warning: unaudited code.
 #
 # Copyright (c) 2019 Oscar Reparaz <firstname.lastname@esat.kuleuven.be>
+# fmt: off
 
 
 from sage.all import *
