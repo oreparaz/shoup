@@ -16,6 +16,8 @@ from sage.all import *
 import random
 import hashlib
 
+import numpy as np
+
 
 # An identifier for this current version of the script.
 # Note that all parties must run the same version;
@@ -314,8 +316,8 @@ def test_shamir():
         expected_leak = False
         if picked_shares >= number_coeffs:
             expected_leak = True
-        welch_num = (mean(c0s) - mean(c1s))
-        welch_den = sqrt((variance(c0s)/len(c0s)) + (variance(c1s)/len(c1s)))
+        welch_num = (np.mean(c0s) - np.mean(c1s))
+        welch_den = sqrt((np.var(c0s)/len(c0s)) + (np.var(c1s)/len(c1s)))
         welch = welch_num / welch_den
         leak = abs(welch) > 5
         assert(leak == expected_leak)
