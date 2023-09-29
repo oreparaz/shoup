@@ -38,7 +38,7 @@ def mul_mod(op1, op2, modulo):
 
 
 def is_sophie_germain(n):
-    return is_prime(n) and is_prime((n-1)/2)
+    return is_prime(n) and is_prime((n-1)//2)
 
 
 def openssl_generate_safe_prime(bits):
@@ -53,11 +53,11 @@ def openssl_generate_safe_prime(bits):
 
 def prime_gen(param):
     L = param['rsa_modulus_length_in_bits']
-    p = openssl_generate_safe_prime(L / 2)
-    q = openssl_generate_safe_prime(L / 2)
+    p = openssl_generate_safe_prime(L // 2)
+    q = openssl_generate_safe_prime(L // 2)
     while p == q:  # can happen w/ short primes (e.g., testing)
         # very small L can make this loop non-terminating
-        q = openssl_generate_safe_prime(L / 2)
+        q = openssl_generate_safe_prime(L // 2)
     return (p, q)
 
 
@@ -73,7 +73,7 @@ def primes_from_file(param):
 def key_gen(param, primes):
     (p, q) = primes
 
-    m = ((p-1)/2) * ((q-1)/2)
+    m = ((p-1)//2) * ((q-1)//2)
 
     # Shoup's protocol requires the RSA public exponent e be larger
     # than the number parties. Hence, the value e = 2**16 + 1 (F4)
