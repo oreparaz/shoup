@@ -200,7 +200,7 @@ def reconstruct_signature_shares(param, pk, sigshares, message):
 
 
 def hash_transcript(**transcript):
-    hexdigest = hashlib.sha256(str(transcript)).hexdigest()
+    hexdigest = hashlib.sha256(str(transcript).encode()).hexdigest()
     return int(hexdigest, base=16)
 
 
