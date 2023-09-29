@@ -9,11 +9,14 @@
 # Warning: unaudited code.
 #
 # Copyright (c) 2019 Oscar Reparaz <firstname.lastname@esat.kuleuven.be>
+# fmt: off
 
 
 from sage.all import *
 import random
 import hashlib
+
+import numpy as np
 
 
 # An identifier for this current version of the script.
@@ -37,7 +40,7 @@ def mul_mod(op1, op2, modulo):
 
 
 def is_sophie_germain(n):
-    return is_prime(n) and is_prime((n-1)/2)
+    return is_prime(n) and is_prime((n-1)//2)
 
 
 def openssl_generate_safe_prime(bits):
@@ -52,11 +55,11 @@ def openssl_generate_safe_prime(bits):
 
 def prime_gen(param):
     L = param['rsa_modulus_length_in_bits']
-    p = openssl_generate_safe_prime(L / 2)
-    q = openssl_generate_safe_prime(L / 2)
+    p = openssl_generate_safe_prime(L // 2)
+    q = openssl_generate_safe_prime(L // 2)
     while p == q:  # can happen w/ short primes (e.g., testing)
         # very small L can make this loop non-terminating
-        q = openssl_generate_safe_prime(L / 2)
+        q = openssl_generate_safe_prime(L // 2)
     return (p, q)
 
 
@@ -72,7 +75,7 @@ def primes_from_file(param):
 def key_gen(param, primes):
     (p, q) = primes
 
-    m = ((p-1)/2) * ((q-1)/2)
+    m = ((p-1)//2) * ((q-1)//2)
 
     # Shoup's protocol requires the RSA public exponent e be larger
     # than the number parties. Hence, the value e = 2**16 + 1 (F4)
@@ -96,13 +99,13 @@ def key_gen(param, primes):
 def export_key(sk, pk):
     # Export *unshared* private key and public key to PEM file
     from Crypto.PublicKey.RSA import construct  # unmaintained
-    pubkey = construct((long(pk['n']), long(pk['e'])))
-    privkey = construct((long(pk['n']), long(pk['e']), long(sk['d']),
-                         long(sk['p']), long(sk['q'])))
-    print "RSA public key:"
-    print pubkey.exportKey()
-    print "RSA unshared private key: "
-    print privkey.exportKey(format="PEM", pkcs=8)
+    pubkey = construct((int(pk['n']), int(pk['e'])))
+    privkey = construct((int(pk['n']), int(pk['e']), int(sk['d']),
+                         int(sk['p']), int(sk['q'])))
+    print("RSA public key:")
+    print(pubkey.exportKey())
+    print("RSA unshared private key: ")
+    print(privkey.exportKey(format="PEM", pkcs=8))
 
     # inspect with
     #   openssl rsa -inform PEM -in sk.pem -text -noout
@@ -182,7 +185,7 @@ def reconstruct_signature_shares(param, pk, sigshares, message):
     assert(gcd_e_eprime == 1)
 
     w = 1
-    quorum = range(1, param['number_parties_needed']+1)
+    quorum = list(range(1, param['number_parties_needed']+1))
     for i in quorum:
         exponent = 2 * lagrange(quorum, 0, i, delta)
         part = pow_mod(sigshares[i-1], exponent, n)
@@ -199,7 +202,7 @@ def reconstruct_signature_shares(param, pk, sigshares, message):
 
 
 def hash_transcript(**transcript):
-    hexdigest = hashlib.sha256(str(transcript)).hexdigest()
+    hexdigest = hashlib.sha256(str(transcript).encode()).hexdigest()
     return int(hexdigest, base=16)
 
 
@@ -213,7 +216,7 @@ def construct_proofs(param, pk, sk_shared, message, sigshares):
     L = param['number_parties_total']
     xt = lift_message(message, param['delta'], n)
     proofs = [0] * L
-    quorum = range(L)
+    quorum = list(range(L))
     for i in quorum:
         r = random(n)
         c = hash_transcript(script_version=__version__,
@@ -236,7 +239,7 @@ def verify_proofs(param, pk, sk_shared, proofs, message, sigshares):
     n = pk['n']
     v = sk_shared['v']
     xt = lift_message(message, param['delta'], n)
-    quorum = range(param['number_parties_total'])
+    quorum = list(range(param['number_parties_total']))
     for i in quorum:
         their_z, their_c = proofs[i]
 
@@ -313,8 +316,8 @@ def test_shamir():
         expected_leak = False
         if picked_shares >= number_coeffs:
             expected_leak = True
-        welch_num = (mean(c0s) - mean(c1s))
-        welch_den = sqrt((variance(c0s)/len(c0s)) + (variance(c1s)/len(c1s)))
+        welch_num = (np.mean(c0s) - np.mean(c1s))
+        welch_den = sqrt((np.var(c0s)/len(c0s)) + (np.var(c1s)/len(c1s)))
         welch = welch_num / welch_den
         leak = abs(welch) > 5
         assert(leak == expected_leak)
@@ -375,4 +378,4 @@ while True:
     test_shamir()
     test_roundtrip()
     test_cheat()
-    print "OK"
+    print("OK")
